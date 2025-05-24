@@ -18,4 +18,10 @@
       <EmbeddedResource Include="Version.json" Condition="Exists('Version.json')" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="RobloxFileFormat">
+        <HintPath>..\Dependencies\RobloxFileFormat.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

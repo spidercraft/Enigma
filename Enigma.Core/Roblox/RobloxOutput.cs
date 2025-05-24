@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Enigma.Core.Diagnostic;
 using Enigma.Core.OpenVr.Model;
 using Enigma.Core.Shim.Output;
 using Enigma.Core.Shim.Window;
 using InputSimulatorStandard.Native;
+using RobloxFiles;
 using IClipboard = Enigma.Core.Shim.Output.IClipboard;
 
 namespace Enigma.Core.Roblox;
@@ -70,57 +72,13 @@ public class RobloxOutput
     /// <returns>Whether the data was pushed to the client.</returns>
     public async Task<bool> PushDataAsync(string data)
     {
-        // Return if the data is unchanged.
-        // true is returned to act as if it was successful, even though nothing changed.
-        if (data == this.LastData)
-        {
-            return true;
-        }
-        this.LastRequestedData = data;
-        
-        // Return if the window is not focused.
-        if (!this._windowState.IsRobloxFocused())
-        {
-            if (this._heartbeatStopwatch.IsRunning)
-            {
-                Logger.Info("Stopping data sending to Roblox client.");
-            }
-            this._heartbeatStopwatch.Stop();
-            return false;
-        }
-        
-        // Send the heartbeat key.
-        if (!this._heartbeatStopwatch.IsRunning)
-        {
-            this._heartbeatStopwatch.Start();
-            this._keyboard.KeyPress(VirtualKeyCode.F13);
-            Logger.Info("Starting data sending to Roblox client.");
-        }
-        else if (this._heartbeatStopwatch.ElapsedMilliseconds >= HeartbeatIntervalMilliseconds)
-        {
-            this._heartbeatStopwatch.Restart();
-            this._keyboard.KeyPress(VirtualKeyCode.F13);
-            Logger.Trace("Performing data sending heartbeat to Roblox client.");
-        }
-        
-        // Set the clipboard and send the inputs to update the TextBox.
-        var dataSent = false;
-        await this._clipboard.SetTextAsync(data);
-        if (!this._windowState.IsRobloxFocused())
-        {
-            Logger.Info("Stopping data sending to Roblox client.");
-            return false;
-        }
-        this._keyboard.KeyDown(VirtualKeyCode.LCONTROL);
-        this._keyboard.KeyPress(VirtualKeyCode.VK_A);
-        if (this._windowState.IsRobloxFocused())
-        {
-            this._keyboard.KeyPress(VirtualKeyCode.VK_V);
-            dataSent = true;
-            this.LastData = data;
-        }
-        this._keyboard.KeyUp(VirtualKeyCode.LCONTROL);
-        return dataSent;
+        RobloxFile file = RobloxFile.Open(@"C:\Users\louki\AppData\Local\Bloxstrap\Versions\version-e00a4ca39fb04359\content\avatar\character.rbxm");
+
+        // Make some changes...
+        file.GetChildren().Last().SetAttribute("data", data);
+        file.Save(@"C:\Users\louki\AppData\Local\Bloxstrap\Versions\version-e00a4ca39fb04359\content\avatar\character.rbxm");
+
+        return true;
     }
 
     /// <summary>
